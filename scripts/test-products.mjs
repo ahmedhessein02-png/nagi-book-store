@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,readdirSync} from 'node:fs';
+import {validateProduct,mergeProducts,imageMime,boundedBody} from '../lib/product-utils.ts';
+import {validateOrder} from '../lib/order-utils.ts';
+const db=new DatabaseSync(':memory:');for(const f of readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())db.exec(readFileSync('drizzle/'+f,'utf8'));
+const payload={title:'New bookstore title',author:'Book author',genre:'New category',price:12500,image:'api/book-images/12345678-1234-4123-8123-123456789abc',extraDetails:['Edition: First'],description:'A description with <characters> preserved as text',publisher:'Press',language:'English',pages:'250',bestSeller:true,featured:true,published:true};
+const book=validateProduct(payload,'book-'+crypto.randomUUID());assert.equal(book.description,payload.description);assert.ok(book.details.includes('Pages: 250'));assert.ok(book.featured&&book.bestSeller);
+for(const invalid of [{price:-1},{price:1.2},{title:''},{author:''},{image:'https://evil.test/x.svg'},{image:'assets/cover-1.webp'},{pages:'bad'},{extraDetails:['no label']}])assert.throws(()=>validateProduct({...payload,...invalid},book.id));
+db.prepare('INSERT INTO managed_books VALUES(?,?,?)').run(book.id,JSON.stringify(book),new Date().toISOString());
+const read=()=>db.prepare('SELECT data FROM managed_books').all().map(x=>JSON.parse(x.data));
+let catalog=mergeProducts([],read());assert.equal(catalog[0].price,12500);assert.equal(catalog[0].genre,'New category');
+const input={id:crypto.randomUUID(),name:'Test customer',mobile:'07500000000',city:'Erbil',address:'Test address',deliveryRegion:'kurdistan',paymentMethod:'cash_on_delivery',items:[{id:book.id,quantity:2,price:1}]};
+const order=validateOrder(input,catalog);assert.equal(order.total,30000);const historical=JSON.stringify(order);
+const changed=validateProduct({...payload,price:16000},book.id,book);db.prepare('UPDATE managed_books SET data=? WHERE id=?').run(JSON.stringify(changed),book.id);catalog=mergeProducts([],read());assert.equal(validateOrder(input,catalog).total,37000);assert.equal(JSON.parse(historical).total,30000);
+const hidden={...changed,published:false};assert.equal(mergeProducts([book],[hidden]).length,0);assert.equal(mergeProducts([book],[hidden],true).length,1);assert.throws(()=>validateOrder(input,mergeProducts([book],[hidden])));
+assert.equal(imageMime(new Uint8Array([137,80,78,71,13,10,26,10])),'image/png');assert.equal(imageMime(new TextEncoder().encode('<svg onload="alert(1)">')),null);assert.equal(imageMime(new TextEncoder().encode('<html>not an image</html>')),null);
+await assert.rejects(()=>boundedBody(new Request('https://test',{method:'POST',body:'12345'}),4));assert.equal((await boundedBody(new Request('https://test',{method:'POST',body:'1234'}),4)).length,4);
+for(const file of ['app/api/admin/products/route.ts','app/api/admin/book-images/route.ts']){const src=readFileSync(file,'utf8');assert.match(src,/isAdmin\(request\)/);assert.match(src,/sameOrigin\(request\)/)}
+assert.ok(!readFileSync('lib/admin-page.ts','utf8').includes('First-time setup or reset password'));db.close();console.log('Product checks passed: persistence, field validation, safe image types, upload limits, publish/hide, server prices, immutable historical orders, admin write guards.');

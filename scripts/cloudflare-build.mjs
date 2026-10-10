@@ -1,0 +1,12 @@
+import {spawnSync} from 'node:child_process';
+import {readFileSync,writeFileSync} from 'node:fs';
+const databaseId=process.env.NAGI_D1_DATABASE_ID;
+if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(databaseId||''))throw Error('Set the build variable NAGI_D1_DATABASE_ID to your Cloudflare D1 database ID.');
+const result=spawnSync(process.execPath,['node_modules/vinext/dist/cli.js','build'],{stdio:'inherit'});
+if(result.status!==0)process.exit(result.status||1);
+const path='dist/server/wrangler.json',config=JSON.parse(readFileSync(path,'utf8'));
+config.name='nagi-book-store';config.topLevelName='nagi-book-store';
+config.d1_databases=[{binding:'DB',database_name:'nagi-book-store',database_id:databaseId,migrations_dir:'../../drizzle'}];
+config.r2_buckets=[{binding:'BUCKET',bucket_name:process.env.NAGI_R2_BUCKET||'nagi-book-covers'}];
+writeFileSync(path,JSON.stringify(config,null,2)+'\n');
+console.log('Cloudflare build prepared with the store database and cover bucket.');

@@ -1,0 +1,53 @@
+{
+  "auditedRecords": 6369,
+  "publishedRecords": 5977,
+  "duplicateAliases": 265,
+  "sourceDecodeFailures": [
+    "3718",
+    "2829",
+    "3137",
+    "2662",
+    "2544",
+    "2650",
+    "9426",
+    "2734",
+    "9365",
+    "2887",
+    "2989",
+    "4309",
+    "3571",
+    "1199",
+    "9312",
+    "344",
+    "389",
+    "2588",
+    "3661",
+    "2353",
+    "815",
+    "6452",
+    "6966",
+    "4424",
+    "10962",
+    "2548",
+    "2484",
+    "2767"
+  ],
+  "unresolvedImageIds": [
+    "2544",
+    "2353"
+  ],
+  "note": "All published image files are local, fully decoded, and referenced by the catalogue. Duplicate groups and replacement covers were visually reviewed. Hidden records include duplicates and incomplete imported listings; reasons are shown in the dashboard.",
+  "hiddenForReview": 127,
+  "verifiedPublishedImages": 5977,
+  "titleCorrections": 84,
+  "checks": [
+    "All published image files fully decoded",
+    "Local static assets and product links",
+    "Admin authentication integration",
+    "Product upload/create/edit/hide integration",
+    "Duplicate prevention",
+    "Percentage and fixed discounts",
+    "Both delivery regions and payment methods",
+    "Best Seller membership and owner-supplied prices"
+  ]
+}
