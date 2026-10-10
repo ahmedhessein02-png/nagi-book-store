@@ -1,6 +1,6 @@
 # Nagi Book Store
 
-**Migration status: source code prepared; cover-image transfer is pending approval. Do not deploy until all `public/assets` files are present.**
+**This ZIP contains the complete source and all 6,123 storefront images. The GitHub repository currently has source only; its image upload was blocked by automatic review. Cloudflare deployment is still pending.**
 
 Bookstore with 5,977 published books, local covers, owner product management, percentage/IQD discounts, delivery pricing, WhatsApp checkout and saved order requests.
 
