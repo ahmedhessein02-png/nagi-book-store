@@ -1,10 +1,10 @@
 # Nagi Book Store
 
-**This ZIP contains the complete source and all 6,123 storefront images. The GitHub repository currently has source only; its image upload was blocked by automatic review. Cloudflare deployment is still pending.**
+**The repository includes application source, catalogue and static covers. The original Sites publication is confirmed active; separate Cloudflare deployment and database contents remain unverified. Customer data and later owner uploads require a separate authenticated migration.**
 
 Bookstore with 5,977 published books, local covers, owner product management, percentage/IQD discounts, delivery pricing, WhatsApp checkout and saved order requests.
 
-The existing store stays live at https://nagi-book-store.ahmed-mayi.chatgpt.site until the Cloudflare migration is completed. A GitHub repository alone does not host this application. Do not use GitHub Pages.
+The previously documented store URL is https://nagi-book-store.ahmed-mayi.chatgpt.site; Sites confirms that publication is active; this does not verify any separate Cloudflare deployment. A GitHub repository alone does not host this application. Do not use GitHub Pages.
 
 ## Deploy to your Cloudflare account
 
@@ -15,10 +15,14 @@ The existing store stays live at https://nagi-book-store.ahmed-mayi.chatgpt.site
 5. Add the build variable `NAGI_D1_DATABASE_ID` with the actual database ID. If the bucket has another name, also set build variable `NAGI_R2_BUCKET`.
 6. Deploy. The deploy command applies the versioned database migrations before publishing.
 7. In the Worker's runtime settings, add a **secret** named `NAGI_SETUP_TOKEN`: a unique random key of at least 32 characters. Never put it in GitHub, source files, a URL or a chat message. Redeploy if Cloudflare asks you to apply the secret.
-8. Visit `/admin/setup` on the new Worker URL. Enter that setup key, a username and a password of at least 16 characters. Keep the setup key private; it can reset the owner's account.
+8. For a brand-new store only (never when preserving existing administrator credentials), visit `/admin/setup` on the new Worker URL. Enter that setup key, a username and a password of at least 16 characters. Keep the setup key private; it can reset the owner's account.
 9. The owner can then use `/admin/login` to manage products, upload covers, create/remove discounts and manage orders without GitHub or ChatGPT access.
 
 The build needs Node 22.13 or newer and the pinned pnpm version from `package.json`. Cloudflare's build environment must have permissions for Workers deployment, D1 migrations and the configured R2 bucket. Review provider plan limits and any billing requirements when enabling services.
+
+## Migration readiness
+
+See [the audit and reversible offline transfer runbook](migration/READINESS.md). `migration/status.json` is historical, not verified production status. Do not deploy or change domains based on that file.
 
 ## Migration boundaries
 

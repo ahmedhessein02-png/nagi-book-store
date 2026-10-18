@@ -13,7 +13,8 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "build:cloudflare": "node scripts/cloudflare-build.mjs",
-    "deploy:cloudflare": "node scripts/cloudflare-deploy.mjs"
+    "deploy:cloudflare": "node scripts/cloudflare-deploy.mjs",
+    "test:migration": "python3 -m unittest discover -s migration/tests -v"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

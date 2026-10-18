@@ -1,11 +1,24 @@
 {
-  "status": "source-only-images-pending-approval",
-  "sourceBaseline": "fd7b7a05ecf9c163fce6c28170f252f1774b8260",
-  "catalogueRecords": 6369,
-  "publishedBooks": 5977,
-  "requiredImageFiles": 6123,
-  "assetArchiveSha256": "f21b374e0fc7e85ab4df8cc569ac1a298b4935441b7ffdb05fe72f8af6db7f7e",
-  "cloudflareBuildTested": true,
-  "ownerSetupTestsPassed": true,
-  "deployed": false
+  "status": "offline-transfer-tested-production-migration-blocked",
+  "auditDate": "2026-10-18",
+  "originalSitesPublication": "active-confirmed-by-sites",
+  "originalSitesDatabaseSchema": "six-expected-user-tables-confirmed",
+  "externalCloudflareDeployment": "unverified",
+  "productionDataExport": "not-performed",
+  "productionDataImport": "not-performed",
+  "domainChanged": false,
+  "migrationTestsPassed": 14,
+  "applicationChecksPassed": 5,
+  "runbook": "migration/READINESS.md",
+  "historicalStatus": {
+    "status": "source-only-images-pending-approval",
+    "sourceBaseline": "fd7b7a05ecf9c163fce6c28170f252f1774b8260",
+    "catalogueRecords": 6369,
+    "publishedBooks": 5977,
+    "requiredImageFiles": 6123,
+    "assetArchiveSha256": "f21b374e0fc7e85ab4df8cc569ac1a298b4935441b7ffdb05fe72f8af6db7f7e",
+    "cloudflareBuildTested": true,
+    "ownerSetupTestsPassed": true,
+    "deployed": false
+  }
 }
