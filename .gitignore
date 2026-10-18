@@ -56,3 +56,12 @@ next-env.d.ts
 /work/
 
 !.env.example
+
+# Private migration exports and Python cache (never commit customer snapshots).
+/migration/private/
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-wal
+*.sqlite-shm
+__pycache__/
