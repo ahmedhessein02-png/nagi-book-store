@@ -2,7 +2,7 @@
 
 Inspected repository commit: `f7d26d19fc6e566c2381a85e37bffd6d3888b3a6`.
 
-**Not ready for production cutover.** Repository inspection establishes application structure, not the identity, contents or deployment state of any production database. No production account, database, bucket, secret, deployment or domain was accessed or changed during this audit. `migration/status.json` is historical evidence, not a live status probe.
+**Not ready for production cutover.** Repository inspection establishes application structure, not the identity, contents or deployment state of any production database. The follow-up audit used read-only Sites metadata and database-schema inspection. No customer rows, credentials or bucket objects were read; no production data, secrets, deployments or domains were changed. `migration/status.json` is historical evidence, not a live status probe.
 
 ## What must survive
 
@@ -56,7 +56,7 @@ Snapshots contain customer PII and credential/session material. Outputs use priv
 
 ## Production gates still required
 
-1. Establish actual source/destination account, database and bucket identities, deployed commit, all writers, schema version, and authenticated backup/export capabilities. No current deployment claim is made here.
+1. Establish actual source/destination account, database and bucket identities, deployed commit, all writers, schema version, and authenticated backup/export capabilities. The original Sites publication is confirmed active by the Sites service; external Cloudflare account/deployment and complete data inventory remain unverified.
 2. Capture private source counts and inventory, freeze writes, acquire a complete consistent database/bucket export and retain an independent rollback backup. Reconcile any schema mismatch on a disposable copy only.
 3. Run export, verification and restore rehearsal. Review warnings, compare source counts with authenticated provider counts, inspect customer fields privately, confirm exact product JSON/discount/hidden-record parity and validate every static/uploaded image.
 4. Implement/review provider-specific empty-target import after capabilities are known. Preserve IDs and metadata, avoid replace/upsert semantics, and never touch an existing target's customers/admin credentials. Back up any target with data and stop for reconciliation rather than overwriting it.
@@ -66,4 +66,12 @@ Snapshots contain customer PII and credential/session material. Outputs use priv
 
 ## Validation performed
 
-Eight offline tests pass: full round trip (Unicode, historical order, hidden discounted product, credentials, sessions, unknown binary table and cover metadata); rejection of overwritten destinations, tampered database/assets, missing assets/metadata, malformed products and symlinks; legacy anomaly reporting. Product, discount and catalogue scripts pass. Product-route and Cloudflare-setup scripts could not run because this checkout lacks the `typescript` dependency. No production or full build validation is claimed.
+Fourteen offline tests pass, including committed WAL preservation, detection of changing bucket files, metadata-shape validation, rejection of nested destinations, special files and root symlinks, plus: full round trip (Unicode, historical order, hidden discounted product, credentials, sessions, unknown binary table and cover metadata); rejection of overwritten destinations, tampered database/assets, missing assets/metadata, malformed products and symlinks; legacy anomaly reporting. All five existing checks pass: product, discount, catalogue, product-route integration and Cloudflare administrator setup integration. The missing pinned TypeScript 5.9.3 test dependency was installed in an isolated temporary directory without changing the lockfile. No full build, end-to-end production checkout, or complete production data validation is claimed.
+
+## Verified follow-up hosting evidence
+
+On 2026-10-18, authenticated Sites `get_site` confirmed Nagi Book Store is active and public at `https://nagi-book-store.ahmed-mayi.chatgpt.site`, with latest version number 25. This does not establish the deployment state of a separate Cloudflare Worker or custom domain.
+
+Authenticated database overview returned binding `DB` with exactly the six expected user tables: orders, inquiries, managed_books, admin_credentials, admin_sessions and admin_login_limits, with no omitted identifiers. Schema presence is not a data backup, row-count validation or complete export. No customer/credential rows were retrieved.
+
+Available Sites tools offer bounded row inspection, but no complete database snapshot or bucket export. A search for a Cloudflare plugin returned no matching connector. A verified provider export and destination access are still required to complete live migration. The original store remains untouched; do not merge as an excuse to deploy or cut over before the production gates above pass.

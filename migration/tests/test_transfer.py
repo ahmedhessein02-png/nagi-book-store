@@ -4,6 +4,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location('transfer', ROOT / 'migration/transfer.py')
@@ -99,6 +100,50 @@ class TransferTests(unittest.TestCase):
         (self.objects / 'link').symlink_to(self.db)
         with self.assertRaises(ValueError):
             self.export()
+
+    def test_wal_commits_preserved(self):
+        with sqlite3.connect(self.db) as writer:
+            writer.execute('PRAGMA journal_mode=WAL')
+            writer.execute("UPDATE inquiries SET message='Committed WAL message'")
+            writer.commit()
+            self.export()
+            with t.connect(self.bundle / 'database.sqlite') as restored:
+                self.assertEqual(restored.execute('SELECT message FROM inquiries').fetchone()[0], 'Committed WAL message')
+
+    def test_metadata_shape_rejected(self):
+        self.meta.write_text('{"cover": null}')
+        with self.assertRaises(ValueError):
+            self.export()
+
+    def test_changed_bucket_rejected(self):
+        original = t.private_copy
+        def changing_copy(source, destination):
+            original(source, destination)
+            (source / 'cover').write_bytes(b'concurrent upload')
+        with patch.object(t, 'private_copy', changing_copy):
+            with self.assertRaises(ValueError):
+                self.export()
+        self.assertFalse(self.bundle.exists())
+
+    def test_nested_destinations_rejected(self):
+        with self.assertRaises(ValueError):
+            t.export(self.db, self.objects, self.meta, self.objects / 'snapshot')
+        self.export()
+        with self.assertRaises(ValueError):
+            t.restore(self.bundle, self.bundle / 'restore')
+
+    def test_special_files_rejected(self):
+        import os
+        os.mkfifo(self.objects / 'pipe')
+        with self.assertRaises(ValueError):
+            self.export()
+
+    def test_bundle_root_link_rejected(self):
+        self.export()
+        link = self.root / 'linked-bundle'
+        link.symlink_to(self.bundle, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            t.verify(link)
 
 
 if __name__ == '__main__':

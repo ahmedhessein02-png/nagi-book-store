@@ -1,10 +1,10 @@
 # Nagi Book Store
 
-**The repository includes application source, catalogue and static covers. Production hosting and database state have not been verified. Customer data and later owner uploads require a separate authenticated migration.**
+**The repository includes application source, catalogue and static covers. The original Sites publication is confirmed active; separate Cloudflare deployment and database contents remain unverified. Customer data and later owner uploads require a separate authenticated migration.**
 
 Bookstore with 5,977 published books, local covers, owner product management, percentage/IQD discounts, delivery pricing, WhatsApp checkout and saved order requests.
 
-The previously documented store URL is https://nagi-book-store.ahmed-mayi.chatgpt.site; its current hosting state has not been verified. A GitHub repository alone does not host this application. Do not use GitHub Pages.
+The previously documented store URL is https://nagi-book-store.ahmed-mayi.chatgpt.site; Sites confirms that publication is active; this does not verify any separate Cloudflare deployment. A GitHub repository alone does not host this application. Do not use GitHub Pages.
 
 ## Deploy to your Cloudflare account
 

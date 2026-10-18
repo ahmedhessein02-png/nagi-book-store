@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import sqlite3
+import stat
 import tempfile
 
 REQUIRED = {'orders', 'inquiries', 'managed_books', 'admin_credentials',
@@ -74,26 +75,32 @@ def inspect(path, objects):
 
 
 def inventory(root):
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError('Expected a real directory')
     result = {}
     for p in sorted(root.rglob('*')):
         if p.is_symlink():
             raise ValueError('Symbolic links are not supported')
+        if not p.is_dir() and not stat.S_ISREG(p.stat().st_mode):
+            raise ValueError('Special files are not supported')
         if p.is_file():
             result[p.relative_to(root).as_posix()] = digest(p)
     return result
 
 
 def private_copy(source, destination):
-    shutil.copytree(source, destination)
+    shutil.copytree(source, destination, symlinks=True)
+    inventory(destination)  # Reject links introduced during the copy.
     for p in destination.rglob('*'):
         p.chmod(0o700 if p.is_dir() else 0o600)
 
 
 def verify(bundle):
+    actual = inventory(bundle)
     manifest = json.loads((bundle / 'manifest.json').read_text())
     if manifest.get('version') != 1:
         raise ValueError('Unsupported snapshot version')
-    actual = inventory(bundle)
+    validate_metadata(json.loads((bundle / 'object-metadata.json').read_text()), inventory(bundle / 'objects'))
     actual.pop('manifest.json', None)
     if actual != manifest['files']:
         raise ValueError('Snapshot files failed checksum verification')
@@ -114,6 +121,17 @@ def publish_new(staging, output):
         raise
 
 
+def validate_metadata(meta, files):
+    if not isinstance(meta, dict) or set(meta) != set(files):
+        raise ValueError('Bucket metadata must contain exactly every exported object key')
+    for value in meta.values():
+        if not isinstance(value, dict):
+            raise ValueError('Object metadata must be a JSON object')
+        for field in ('httpMetadata', 'customMetadata'):
+            if field in value and not isinstance(value[field], dict):
+                raise ValueError('Invalid metadata field')
+
+
 def export(database, objects, metadata, output):
     if output.exists():
         raise ValueError('Destination already exists')
@@ -121,10 +139,9 @@ def export(database, objects, metadata, output):
         raise ValueError('Provide a complete bucket export directory, even if empty')
     if output.resolve().is_relative_to(objects.resolve()):
         raise ValueError('Destination must be outside the source objects directory')
-    inventory(objects)  # Reject links before copying.
+    source_files = inventory(objects)  # Reject links before copying.
     meta = json.loads(metadata.read_text())
-    if not isinstance(meta, dict) or set(meta) != set(inventory(objects)):
-        raise ValueError('Bucket metadata must contain exactly every exported object key')
+    validate_metadata(meta, source_files)
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=output.parent) as tmp:
         stage = Path(tmp)
@@ -132,6 +149,8 @@ def export(database, objects, metadata, output):
             src.backup(dst)  # Transactionally consistent SQLite backup, including WAL.
         (stage / 'database.sqlite').chmod(0o600)
         private_copy(objects, stage / 'objects')
+        if source_files != inventory(stage / 'objects') or source_files != inventory(objects):
+            raise ValueError('Bucket files changed during export; freeze source writes')
         (stage / 'object-metadata.json').write_text(json.dumps(meta, sort_keys=True))
         (stage / 'object-metadata.json').chmod(0o600)
         manifest = {'version': 1, 'database': inspect(stage / 'database.sqlite', stage / 'objects'), 'files': inventory(stage)}
